@@ -1,0 +1,44 @@
+rgb_cube = imread("Week 3\Tutorial 5\images\cube.png");
+
+ I= rgb2gray(rgb_cube); % conver to intensity
+ BW = edge(I,"canny"); % extract edges
+ imshow(BW)
+
+ [H,T,R]= hough(BW,"RhoResolution",0.5,"ThetaResolution",0.5);
+
+ % Display the original image
+
+% 2: The number of rows in the grid.
+% 1: The number of columns in the grid.
+% 1: The position of the current subplot in the grid.
+ subplot(2,1,1)
+ imshow(rgb_cube)
+ title('cube.png')
+
+% display the hough matrix
+subplot(2,1,2)
+% Matrix H, the numbers of votes in the bins, is converted into a grayscale
+imshow(imadjust(mat2gray(H)),'Colormap',hot,'XData',T,'YData',R,'InitialMagnification','fit');
+title('Hough transform of cube.png');
+xlabel('\theta'), ylabel('\rho');
+axis on, axis normal, hold on;
+
+% Step 3: Find Hough peaks using function houghpeaks
+
+P = houghpeaks(H, 6);
+
+plot(T(P(:,2)),R(P(:,1)),'s','color','yellow');
+
+
+
+% Step 4: Find the lines from the peaks using houghline
+Houghline works out the lines longer than the specified minimum length and links short
+segments to form longer lines.
+
+
+
+
+
+
+
+

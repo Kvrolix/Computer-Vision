@@ -1,0 +1,21 @@
+img = imread("Week 2/building.tif");
+
+% Exercise 1
+sx = [-1 0 1;-2 0 2; -1 0 1];
+sy =sx';
+
+img_x = img;
+img_y = img_x';
+
+img_filter = filter2(img_x);
+img_filter
+
+%out_image = img /255;
+
+%img_x = img / 100;
+%imshow(img_x)
+%img_y = img_x';
+
+
+%overall_edge =sqrt(img_x.^2+img_y.^2);
+%overall_edge
