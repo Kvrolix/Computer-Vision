@@ -1,0 +1,81 @@
+
+
+% image = imread('oversized.jpg');
+% image = imread('fire01.jpg');
+
+image= imread("006.jpg")
+
+% Gaussian
+a = 3;
+sig = 3;
+gaussian_filter = fspecial('gaussian', [a, a], sig);
+smoothed_img = imfilter(image, gaussian_filter, 'replicate');
+
+% Convert to grayscale
+img_gray = rgb2gray(smoothed_img);
+
+% Binarize the image
+threshold = 0.15;
+img_bw = imbinarize(img_gray, threshold);
+
+% Invert the binary image
+img_inverted = 1 - img_bw;
+
+% Perform morphological operations (closing and erosion)
+dilation_structEl = strel('square', 70);
+closed_img = imclose(img_inverted, dilation_structEl);
+
+erosion_structEl = strel('square', 5);
+img_erosion = imerode(closed_img, erosion_structEl);
+
+% Use regionprops to get properties for each region
+labeledImage = bwlabel(img_erosion);
+stats = regionprops(labeledImage, 'BoundingBox', 'Area');
+
+% Filter regions based on area (you may adjust the threshold)
+minAreaThreshold = 500;  % Adjust as needed
+selectedRegions = stats([stats.Area] > minAreaThreshold);
+
+% Display the original image
+figure;
+imshow(image);
+hold on;
+
+% Initialize measurements structure
+measurements = struct('BoundingBox', [], 'Width', [], 'Height', [], 'Area', []);
+
+% Loop through selected regions and draw bounding boxes
+for i = 1:numel(selectedRegions)
+    boundingBox = selectedRegions(i).BoundingBox;
+    rectangle('Position', boundingBox, 'EdgeColor', 'r', 'LineWidth', 2);
+
+    % Store measurements
+    measurements(i).BoundingBox = boundingBox;
+    measurements(i).Width = boundingBox(3);
+    measurements(i).Height = boundingBox(4);
+    measurements(i).Area = selectedRegions(i).Area;
+
+    % Display measurements
+    fprintf('Region %d: Width = %.2f, Height = %.2f, Area = %.2f\n', ...
+        i, measurements(i).Width, measurements(i).Height, measurements(i).Area);
+
+
+     % Get corners using the corner function
+    corners = corner(img_erosion, 'QualityLevel', 0.1);
+
+    % Plot corners
+    plot(corners(:, 1), corners(:, 2), 'r*');
+end
+
+hold off;
+
+
+
+
+
+
+
+
+
+
+
