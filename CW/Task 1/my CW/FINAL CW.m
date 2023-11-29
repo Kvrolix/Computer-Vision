@@ -64,4 +64,11 @@ IF THE CAR IS NOT RED
 
 %}
 
+
+
+
 measureCar("006.jpg")
+
+
+
+checkSpeed()

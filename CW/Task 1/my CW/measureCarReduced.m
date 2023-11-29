@@ -1,5 +1,5 @@
 
-function measuremements = measureCar(imagePath)
+function measuremements = measureCar3(imagePath)
 
 image=imread(imagePath);
 
