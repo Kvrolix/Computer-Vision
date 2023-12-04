@@ -1,8 +1,6 @@
-function isRedCar = isRedCar(imagePath)
-
+function [isCarRed,binaryImage] = isRed(imagePath)
     %Read image
     image = imread(imagePath);
-
 
     % Convert image to HSV color space
     hsvImage = rgb2hsv(image);
@@ -18,7 +16,19 @@ function isRedCar = isRedCar(imagePath)
 
     % Check the red percentage on the picture
     percentageRed = sum(binaryImage(:)) / numel(binaryImage) * 100;
+imshow(binaryImage);
+    isCarRed = percentageRed > 1;    
 
-    isRedCar = percentageRed > 1;    
+
+
+
+
+
+
+
+
+
+
+    
 end
 

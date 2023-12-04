@@ -77,6 +77,12 @@ for i = 1:numel(selectedRegions)
     % Plot corners
     plot([topLeft(1), topRight(1), bottomRight(1), bottomLeft(1), topLeft(1)], ...
          [topLeft(2), topRight(2), bottomRight(2), bottomLeft(2), topLeft(2)], 'r*-');
+
+
+     % Plot center (additional point) in blue
+    center = [boundingBox(1) + boundingBox(3)/2, boundingBox(2) + boundingBox(4)/2];
+    plot(center(1), center(2), 'bo', 'MarkerSize', 10, 'LineWidth', 2);
+
 end
 
 

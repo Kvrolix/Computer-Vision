@@ -1,5 +1,11 @@
+clear;
+
 
 %{
+
+if the car is red
+    if not then run 
+
 
 
 
@@ -7,11 +13,6 @@ Check for oversized cars
 if the car width > 2.5m
 if the function ratio 1:3 will give false
 if the car is not red
-
-
-
-
-
 
 
 Fire Truck logic:
@@ -64,11 +65,12 @@ IF THE CAR IS NOT RED
 
 %}
 
+% [isSpeeding, speed] = checkSpeed('001.jpg','002.jpg');
 
+% [isSpeeding, speedMiles, startWidthMeters, startLengthMeters] = Copy_of_checkSpeed('001.jpg','002.jpg');
 
+% [isSpeeding, speedMiles,difference, widthDifference] = Copy_of_checkSpeed('001.jpg','002.jpg');
 
-measureCar("006.jpg")
+Copy_of_isRed('fire01.jpg');
 
-
-
-checkSpeed()
+% Copy_of_getMeasures('001.jpg')
