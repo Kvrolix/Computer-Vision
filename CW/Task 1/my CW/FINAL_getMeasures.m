@@ -1,6 +1,4 @@
-function [centers,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner] = getMeasures(imagePath)
-
-image=imread(imagePath);
+function [centers,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner] = FINAL_getMeasures(image)
 
 % Gaussian
 a = 3;

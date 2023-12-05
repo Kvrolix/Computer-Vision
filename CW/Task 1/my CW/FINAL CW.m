@@ -1,4 +1,4 @@
-clear;
+
 
 
 %{
@@ -71,6 +71,33 @@ IF THE CAR IS NOT RED
 
 % [isSpeeding, speedMiles,difference, widthDifference] = Copy_of_checkSpeed('001.jpg','002.jpg');
 
-Copy_of_isRed('fire01.jpg');
 
-% Copy_of_getMeasures('001.jpg')
+% [isCarRed, centers, bottomLineCenters, topLineCenters]=Copy_of_isRed('fire01.jpg');
+% [isSpeeding, speedMiles,difference, widthDifference,ratio] = Copy_of_checkSpeed('fire01.jpg','fire02.jpg','truck');
+
+% [isSpeeding,speedMiles,length, width, endMeasures] = checkSpeedAndSize('001.jpg','002.jpg');
+
+% call the function check speed and size with the values from the another
+% function
+
+% endMeasures = fireTruckMeasures('fire01.jpg');
+
+
+
+%WORK
+% [centers, bottomLineCenters, topLineCenters,topRightCorner,topLeftCorner] = fireTruckMeasures('fire01.jpg');
+
+%WORKS
+% [centers,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner] = getMeasures('001.jpg');
+
+
+%THE PROBLEM IS WITH READING THE IMAGES INSIDE THE FUNCTIONS
+image1 = '001.jpg';
+% image2 = imread('002.jpg');
+
+[centers,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner] = FINAL_getMeasures(image1);
+
+% [startMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner] = CombinedCheckSpeedAndSize(image1);
+
+% [isSpeeding,speedMiles,length, width,endMeasures] = CombinedCheckSpeedAndSize(image1,image2,startMeasures,endMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner);
+% Copy_of_getMeasures('fire01.jpg')

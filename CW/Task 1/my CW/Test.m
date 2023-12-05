@@ -1,5 +1,8 @@
 clear,
 close all,
-img1=imread('');
-img2=imread('');
-my_application(img1,img2);
+image1=imread('fire01.jpg');
+image2=imread('fire02.jpg');
+
+% image1 = imread('001.jpg');
+% image2 = imread('002.jpg');
+myApplication(image1,image2);

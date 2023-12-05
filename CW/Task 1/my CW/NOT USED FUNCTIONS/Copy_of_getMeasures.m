@@ -1,6 +1,6 @@
 function [centers, bottomLineCenters, topLineCenters] = Copy_of_getMeasures(imagePath)
     % Read the image
-    image = imread(imagePath);
+    image = imread(imagePath);  
 
     % Gaussian
     a = 3;
@@ -32,6 +32,7 @@ function [centers, bottomLineCenters, topLineCenters] = Copy_of_getMeasures(imag
     % Filter regions based on area (you may adjust the threshold)
     minAreaThreshold = 5;  % Adjust as needed
     selectedRegions = stats([stats.Area] > minAreaThreshold);
+
 
     % Initialize variables
     centers = zeros(numel(selectedRegions), 2);

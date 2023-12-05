@@ -1,10 +1,10 @@
-function [isSpeeding,speedMiles,difference, widthDifference] = Copy_of_checkSpeed(image1,image2)
+function [isSpeeding,speedMiles,length, width,endMeasures] = checkSpeedAndSize(image1,image2)
 
 %Get measures
 
 % [bottomLineCenters,topLineCenters] = getMeasures(image1);
 [startMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner] = getMeasures(image1);
-endMeasures = getMeasures(image2);
+endMeasures = getMeasures(image2); % The coords of the second image as there's no need for the rest of calucations
 
 cameraHeight = 7;
 degUnderCamera = 60;
@@ -42,7 +42,7 @@ carWidthEndDeg = degUnderCamera + (carEndWidthPx * degreesPerPixel);
 
 startWidth = cameraHeight * tand(carWidthStartDeg);
 endWidth = cameraHeight * tand(carWidthEndDeg);
-widthDifference = (endWidth - startWidth) /2;
+width = (endWidth - startWidth) /2;
 
 
 %Car length calculations % COMPLETED
@@ -54,7 +54,7 @@ carLengthEndDeg = degUnderCamera + (carEndDiffPx * degreesPerPixel);
 
 startLength = cameraHeight * tand(carLengthStartDeg);
 endLength = cameraHeight * tand(carLengthEndDeg);
-difference = endLength - startLength;
+length = endLength - startLength;
 
 
 %Convertion of the difference in pixels to difference in degrees
