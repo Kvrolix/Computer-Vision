@@ -1,4 +1,4 @@
-function [isCarRed,binaryImage] = FINAL_isRed(image)
+function [isCarRed,binaryImage,percentageRed] = FINAL_isRed(image)
     
     % Convert image to HSV color space
     hsvImage = rgb2hsv(image);

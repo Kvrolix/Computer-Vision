@@ -13,9 +13,7 @@ function myApplication(image1,image2)
 [~,~,percentageRed]=FINAL_isRed(image1);
 [~,~,percentageRed2]=FINAL_isRed(image2);
 
-if (percentageRed < 1 & percentageRed2 > 1) | (percentageRed > 1 & percentageRed2 <1)
-    error('Error. Try matching images! ')
-elseif percentageRed > 10
+if percentageRed > 10
     [startMeasures, bottomLineCenters, topLineCenters,topRightCorner,topLeftCorner] = FINAL_fireTruckMeasures(image1);
     endMeasures = FINAL_fireTruckMeasures(image2);
     [resultIsSpeeding, speedMiles, length, width] = FINAL_CombinedCheckSpeedAndSize(image1,image2,startMeasures,endMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner);
@@ -23,7 +21,8 @@ elseif percentageRed > 10
     [ratio,resCorrRatio] = checkRatio(width, length);
     isFireEngine = checkFireEngine(resCorrRatio,percentageRed);
     oversizedResult = checkOversized(width);
-    colourResult = checkCarColor(percentageRed);  
+    colourResult = checkCarColor(percentageRed);
+    
   
 %check for NOT Red Cars
 elseif percentageRed < 10
@@ -31,16 +30,21 @@ elseif percentageRed < 10
     endMeasures = FINAL_getMeasures(image2);
     [resultIsSpeeding,speedMiles,length, width] = FINAL_CombinedCheckSpeedAndSize(image1,image2,startMeasures,endMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner);
     
+
     [ratio,resCorrRatio] = checkRatio(width, length);
     isFireEngine = checkFireEngine(resCorrRatio,percentageRed);
     oversizedResult = checkOversized(width);
     colourResult = checkCarColor(percentageRed);
-  
+    
+elseif (percentageRed < 1 & percentageRed2 > 1) 
+    error('Error. Try matching images! ')
 else
     % image 1 percentage is 0 and the other > 1 check the input images and try again
     error('Error. Check if you have not made any typos!')
 end
 
+
+% check if they are in the ridght order
 fprintf('\nThe width: %.2f metres \n', width);
 fprintf('The length: %.2f metres \n', length);
 fprintf('Car width/length ratio: %.2f \n', ratio); 
