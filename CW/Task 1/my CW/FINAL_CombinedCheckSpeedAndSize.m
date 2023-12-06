@@ -63,7 +63,7 @@ speedMeteres = distanceTravelled / timeInterval;
 % Convertion from miles per second to miles per hour
 speedMiles = speedMeteres * 2.24;
 
-
+%% MOVE IT TO A DIFFERENT FUNCTION
 % Boolean value for checks
 isSpeeding = speedMiles > 30;
 
