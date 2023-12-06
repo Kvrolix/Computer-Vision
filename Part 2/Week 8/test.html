@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<title>WebGL Sphere</title>
+		<style>
+			body {
+				margin: 0;
+			}
+			canvas {
+				display: block;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="webgl-canvas"></canvas>
+		<script>
+			document.addEventListener('DOMContentLoaded', function () {
+				// Get the WebGL context
+				const canvas = document.getElementById('webgl-canvas');
+				const gl = canvas.getContext('webgl');
+
+				if (!gl) {
+					console.error('Unable to initialize WebGL. Your browser may not support it.');
+					return;
+				}
+
+				// Vertex and fragment shader source code
+				const vertexShaderSource = `
+        attribute vec4 a_position;
+        varying vec3 v_normal;
+
+        void main() {
+          gl_Position = a_position;
+          v_normal = a_position.xyz;
+        }
+      `;
+
+				const fragmentShaderSource = `
+        precision mediump float;
+        varying vec3 v_normal;
+
+        void main() {
+          vec3 color = normalize(v_normal) * 0.5 + 0.5;
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `;
+
+				// Compile shaders
+				function compileShader(gl, source, type) {
+					const shader = gl.createShader(type);
+					gl.shaderSource(shader, source);
+					gl.compileShader(shader);
+
+					if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+						console.error(`Error compiling ${type === gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader: ${gl.getShaderInfoLog(shader)}`);
+						gl.deleteShader(shader);
+						return null;
+					}
+
+					return shader;
+				}
+
+				const vertexShader = compileShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
+				const fragmentShader = compileShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
+
+				// Create program and link shaders
+				const program = gl.createProgram();
+				gl.attachShader(program, vertexShader);
+				gl.attachShader(program, fragmentShader);
+				gl.linkProgram(program);
+
+				if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+					console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(program));
+					return;
+				}
+
+				gl.useProgram(program);
+
+				// Create sphere vertices
+				const vertices = [];
+				const radius = 1.0;
+				const latitudeBands = 30;
+				const longitudeBands = 30;
+
+				for (let lat = 0; lat <= latitudeBands; lat++) {
+					const theta = (lat * Math.PI) / latitudeBands;
+					const sinTheta = Math.sin(theta);
+					const cosTheta = Math.cos(theta);
+
+					for (let lon = 0; lon <= longitudeBands; lon++) {
+						const phi = (lon * 2 * Math.PI) / longitudeBands;
+						const sinPhi = Math.sin(phi);
+						const cosPhi = Math.cos(phi);
+
+						const x = cosPhi * sinTheta;
+						const y = cosTheta;
+						const z = sinPhi * sinTheta;
+
+						vertices.push(radius * x, radius * y, radius * z);
+					}
+				}
+
+				// Create buffer and set sphere vertices
+				const vertexBuffer = gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+				const positionAttribute = gl.getAttribLocation(program, 'a_position');
+				gl.vertexAttribPointer(positionAttribute, 3, gl.FLOAT, false, 0, 0);
+				gl.enableVertexAttribArray(positionAttribute);
+
+				// Set clear color and clear the canvas
+				gl.clearColor(0.0, 0.0, 0.0, 1.0);
+				gl.clear(gl.COLOR_BUFFER_BIT);
+
+				// Draw the sphere
+				gl.drawArrays(gl.POINTS, 0, vertices.length / 3);
+			});
+		</script>
+	</body>
+</html>

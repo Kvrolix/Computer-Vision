@@ -109,6 +109,7 @@
 				}
 				return shader;
 			}
+
 			function setupShaders() {
 				//Create vertex and fragment shdaers
 				vertexShader = loadShaderFromDOM('shader-vs');
@@ -132,6 +133,7 @@
 				shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
 				gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 			}
+
 			//Buffers are places for data. All data, e.g., vertex coordinates,
 			//texture coordinates, indices, colours must be stored in their
 			//buffers. Here, the buffer is for the vertex coordinates of a triangle
