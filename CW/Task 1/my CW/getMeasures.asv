@@ -1,45 +1,50 @@
-function [centers,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner] = FINAL_getMeasures(image)
+%Function to get the measure for the car that is not a fire truck, taking
+%the image of the car as the input. Returned values are centers which are
+%the X and Y coordinates of detected object and rest of the returned values
+%are the X and Y coordinates of the section listed by its names.
 
-% Gaussian
+function [centers,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner] = getMeasures(image)
+
+% Gaussian filter
 a = 3;
 sig = 3;
-gaussian_filter = fspecial('gaussian', [a, a], sig);
-smoothed_img = imfilter(image, gaussian_filter, 'replicate');
+gaussianFilter = fspecial('gaussian', [a, a], sig);
+smoothedImg = imfilter(image, gaussianFilter, 'replicate');
 
-% Convert to grayscale
-img_gray = rgb2gray(smoothed_img);
+% Grayscale image
+imgGray = rgb2gray(smoothedImg);
 
-% Binarize the image
+% Binary image
 threshold = 0.15;
-img_bw = imbinarize(img_gray, threshold);
+imgBinary = imbinarize(imgGray, threshold);
 
 % Invert the binary image
-img_inverted = 1 - img_bw;
+img_inverted = 1 - imgBinary;
 
-% Perform morphological operations (closing and erosion)
-dilation_structEl = strel('square', 70);
-closed_img = imclose(img_inverted, dilation_structEl);
+% Morphological operations (closing and erosion)
+dilationStructEl = strel('square', 70);
+closedImg = imclose(img_inverted, dilationStructEl);
 
-erosion_structEl = strel('square', 5);
-img_erosion = imerode(closed_img, erosion_structEl);
+erosionStructEl = strel('square', 5);
+imgErosion = imerode(closedImg, erosionStructEl);
 
 % Use regionprops to get properties for each region
-labeledImage = bwlabel(img_erosion);
+labeledImage = bwlabel(imgErosion);
 stats = regionprops(labeledImage, 'BoundingBox','Area');
 
-% Filter regions based on area (you may adjust the threshold)
-minAreaThreshold = 5;  % Adjust as needed
+% Filter regions based on area
+minAreaThreshold = 5;  
 selectedRegions = stats([stats.Area] > minAreaThreshold);
 
-centers = zeros(numel(selectedRegions), 2);
 % Initialize measurements structure
+centers = zeros(numel(selectedRegions), 2);
 measurements = struct('BoundingBox', [], 'Width', [], 'Height', [],'Centroid',[]);
 
 % Loop through selected regions and draw bounding boxes
 for i = 1:numel(selectedRegions)
     boundingBox = selectedRegions(i).BoundingBox;
    
-     % Calculate centroid (handle the case where Centroid is not present)
+     % Calculate centroid (ha
         if isfield(selectedRegions(i), 'Centroid')
             centers(i, :) = selectedRegions(i).Centroid;
         else
