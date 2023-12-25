@@ -1,7 +1,3 @@
-//
-// Earth and Satellite application
-//
-
 var canvas = document.getElementById('webglCanvas');
 canvas.width = canvas.clientWidth;
 canvas.height = canvas.clientHeight;
@@ -17,28 +13,38 @@ if (!gl) {
 var vsSource = `
 			         attribute vec4 aVertexPosition;
                      attribute vec4 aVertexColor;
+                     attribute vec3 aVertexNormal;
 			         attribute vec2 aTextureCoord;
 			         uniform mat4 uModelViewMatrix;
 			         uniform mat4 uProjectionMatrix;
+                     uniform mat3 uNormalMatrix;
+                     uniform vec3 uLightDirection;
 			         varying highp vec2 vTextureCoord;
-                     varying lowp vec4 vColor; 
+                     varying lowp vec4 vColor;
+                     varying highp vec3 vLighting; 
 			         void main(void) {
 			             gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
 			             vTextureCoord = aTextureCoord;
                          vColor = aVertexColor;
+                         highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
+                         highp vec3 directionalLightColor = vec3(1, 1, 1);
+                         highp vec3 transformedNormal = normalize(uNormalMatrix * aVertexNormal);
+                         highp float directional = max(dot(transformedNormal, normalize(uLightDirection)), 0.0);
+                         vLighting = ambientLight + (directionalLightColor * directional);
 			         }
 			     `;
 
 var fsSource = `
 			         varying highp vec2 vTextureCoord;
                      varying lowp vec4 vColor;
+                     varying highp vec3 vLighting;
 			         uniform sampler2D uSampler;
                      uniform bool uUseTexture;
 			         void main(void) {
                         if (uUseTexture) {
                             gl_FragColor = texture2D(uSampler, vTextureCoord);
                         } else {
-                            gl_FragColor = vColor;
+                            gl_FragColor = vec4(vColor.rgb * vLighting, vColor.a);
                         }
                     }
 			     `;
@@ -682,6 +688,16 @@ function drawScene(now) {
 	gl.enable(gl.DEPTH_TEST);
 	gl.depthFunc(gl.LEQUAL);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+	// Calculate the light direction
+	var lightDirection = vec3.create();
+	vec3.set(lightDirection, Math.cos((60 * Math.PI) / 180), -Math.sin((60 * Math.PI) / 180), 0); // Top-right light
+	gl.uniform3fv(gl.getUniformLocation(shaderProgram, 'uLightDirection'), lightDirection);
+
+	// Calculate and pass the normal matrix
+	var normalMatrix = mat3.create();
+	mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+	gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, 'uNormalMatrix'), false, normalMatrix);
 
 	// Set up the perspective matrix
 	mat4.perspective(projectionMatrix, (60 * Math.PI) / 180, gl.canvas.clientWidth / gl.canvas.clientHeight, 0.1, 1000.0);
