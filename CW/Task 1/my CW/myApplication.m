@@ -10,15 +10,15 @@ function myApplication(image1,image2)
 % imshow(binaryImage);
 % [isCarRed, ~,percentageRed]=FINAL_isRed(image1);
 
-[~,~,percentageRed]=FINAL_isRed(image1);
-[~,~,percentageRed2]=FINAL_isRed(image2);
+[~,percentageRed]=isRed(image1);
+[~,percentageRed2]=isRed(image2);
 
 if (percentageRed < 1 & percentageRed2 > 1) | (percentageRed > 1 & percentageRed2 <1)
     error('Error. Try matching images! ')
 elseif percentageRed > 10
-    [startMeasures, bottomLineCenters, topLineCenters,topRightCorner,topLeftCorner] = FINAL_fireTruckMeasures(image1);
-    endMeasures = FINAL_fireTruckMeasures(image2);
-    [resultIsSpeeding, speedMiles, length, width] = FINAL_CombinedCheckSpeedAndSize(image1,image2,startMeasures,endMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner);
+    [startMeasures, bottomLineCenters, topLineCenters,topRightCorner,topLeftCorner] = fireTruckMeasures(image1);
+    endMeasures = fireTruckMeasures(image2);
+    [resultIsSpeeding, speedMiles, length, width] = CombinedCheckSpeedAndSize(image1,image2,startMeasures,endMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner);
 
     [ratio,resCorrRatio] = checkRatio(width, length);
     isFireEngine = checkFireEngine(resCorrRatio,percentageRed);
@@ -27,9 +27,9 @@ elseif percentageRed > 10
   
 %check for NOT Red Cars
 elseif percentageRed < 10
-    [startMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner] = FINAL_getMeasures(image1);
-    endMeasures = FINAL_getMeasures(image2);
-    [resultIsSpeeding,speedMiles,length, width] = FINAL_CombinedCheckSpeedAndSize(image1,image2,startMeasures,endMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner);
+    [startMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner] = getMeasures(image1);
+    endMeasures = getMeasures(image2);
+    [resultIsSpeeding,speedMiles,length, width] = CombinedCheckSpeedAndSize(image1,image2,startMeasures,endMeasures,bottomLineCenters,topLineCenters,topRightCorner,topLeftCorner);
     
     [ratio,resCorrRatio] = checkRatio(width, length);
     isFireEngine = checkFireEngine(resCorrRatio,percentageRed);
