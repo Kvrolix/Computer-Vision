@@ -480,26 +480,6 @@ function drawSolarPanel(gl, shaderProgram, modelViewMatrix, projectionMatrix) {
 	gl.drawElements(gl.TRIANGLES, solarPanelData.indices.length, gl.UNSIGNED_SHORT, 0);
 }
 
-// function drawSolarPanel(gl, vertexBuffer, colorBuffer, indexBuffer, indicesLength, modelViewMatrix, projectionMatrix, shaderProgram) {
-// 	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-// 	var vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
-// 	gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
-// 	gl.enableVertexAttribArray(vertexPosition);
-
-// 	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-// 	var vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor');
-// 	gl.vertexAttribPointer(vertexColor, 4, gl.FLOAT, false, 0, 0);
-// 	gl.enableVertexAttribArray(vertexColor);
-
-// 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-// 	gl.uniformMatrix4fv(shaderProgram.uModelViewMatrix, false, modelViewMatrix);
-// 	gl.uniformMatrix4fv(shaderProgram.uProjectionMatrix, false, projectionMatrix);
-
-// 	gl.drawElements(gl.TRIANGLES, indicesLength, gl.UNSIGNED_SHORT, 0);
-// }
-/////////////////////////////////////// DRAWING THE RODS
-
 function createOctagonalPrism(diameter, length, color) {
 	const angle = (2 * Math.PI) / 8; // octagon has 8 sides
 	const radius = diameter / 2;
@@ -579,34 +559,6 @@ const rod3IndexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod3IndexBuffer);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, rod3.indices, gl.STATIC_DRAW);
 
-// // ---Second rod
-// const rod2 = createOctagonalPrism(0.2, 0.8, grey);
-// const rod2VertexBuffer = gl.createBuffer();
-// gl.bindBuffer(gl.ARRAY_BUFFER, rod2VertexBuffer);
-// gl.bufferData(gl.ARRAY_BUFFER, rod2.vertices, gl.STATIC_DRAW);
-
-// const rod2ColorBuffer = gl.createBuffer();
-// gl.bindBuffer(gl.ARRAY_BUFFER, rod1ColorBuffer);
-// gl.bufferData(gl.ARRAY_BUFFER, rod2.colors, gl.STATIC_DRAW);
-
-// const rod2IndexBuffer = gl.createBuffer();
-// gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod1IndexBuffer);
-// gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, rod2.indices, gl.STATIC_DRAW);
-
-// // ---Third rod
-// const rod3 = createOctagonalPrism(0.3, 1.0, grey);
-// const rod3VertexBuffer = gl.createBuffer();
-// gl.bindBuffer(gl.ARRAY_BUFFER, rod2VertexBuffer);
-// gl.bufferData(gl.ARRAY_BUFFER, rod3.vertices, gl.STATIC_DRAW);
-
-// const rod3ColorBuffer = gl.createBuffer();
-// gl.bindBuffer(gl.ARRAY_BUFFER, rod1ColorBuffer);
-// gl.bufferData(gl.ARRAY_BUFFER, rod3.colors, gl.STATIC_DRAW);
-
-// const rod3IndexBuffer = gl.createBuffer();
-// gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod1IndexBuffer);
-// gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, rod3.indices, gl.STATIC_DRAW);
-
 function drawRod(gl, shaderProgram, vertexBuffer, colorBuffer, indexBuffer, indicesLength, modelViewMatrix, projectionMatrix) {
 	// Bind the vertex buffer
 	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -631,7 +583,78 @@ function drawRod(gl, shaderProgram, vertexBuffer, colorBuffer, indexBuffer, indi
 	gl.drawElements(gl.TRIANGLES, indicesLength, gl.UNSIGNED_SHORT, 0);
 }
 
-////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+function createAntennaDish(radius, color) {
+	var vertices = [];
+	var colors = [];
+	var indices = [];
+	var sliceCount = 32; // Number of slices to approximate the circle
+
+	// Center of the dish
+	vertices.push(0.0, 0.0, 0.0);
+	colors.push(...color);
+
+	for (var i = 0; i <= sliceCount; i++) {
+		var angle = (i * 2 * Math.PI) / sliceCount;
+		var x = radius * Math.cos(angle);
+		var y = radius * Math.sin(angle);
+
+		vertices.push(x, y, 0.0); // Z is 0 because the dish is flat
+		colors.push(...color);
+
+		if (i > 0) {
+			indices.push(0, i, i + 1);
+		}
+	}
+
+	return {
+		vertices: new Float32Array(vertices),
+		colors: new Float32Array(colors),
+		indices: new Uint16Array(indices)
+	};
+}
+
+var goldenColor = [1.0, 0.843, 0.0, 1.0];
+var antennaDishData = createAntennaDish(2.0, goldenColor); // Radius 2.0 for diameter 4.0
+
+var antennaDishVertexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, antennaDishVertexBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, antennaDishData.vertices, gl.STATIC_DRAW);
+
+var antennaDishColorBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, antennaDishColorBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, antennaDishData.colors, gl.STATIC_DRAW);
+
+var antennaDishIndexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, antennaDishIndexBuffer);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, antennaDishData.indices, gl.STATIC_DRAW);
+
+function drawAntennaDish(gl, shaderProgram, vertexBuffer, colorBuffer, indexBuffer, indicesLength, modelViewMatrix, projectionMatrix) {
+	// Bind the vertex buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+	var vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+	gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vertexPosition);
+
+	// Bind the color buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	var vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor');
+	gl.vertexAttribPointer(vertexColor, 4, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vertexColor);
+
+	// Bind the index buffer
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+	// Set the shader uniforms for the model-view and projection matrices
+	gl.uniformMatrix4fv(shaderProgram.uModelViewMatrix, false, modelViewMatrix);
+	gl.uniformMatrix4fv(shaderProgram.uProjectionMatrix, false, projectionMatrix);
+
+	// Draw the antenna dish
+	gl.drawElements(gl.TRIANGLES, indicesLength, gl.UNSIGNED_SHORT, 0);
+}
+
+///////////////////////////////////////////////////////////////
 
 // Satellite Buffers
 
@@ -640,8 +663,7 @@ var projectionMatrix = mat4.create();
 
 var satelliteAngle = 0;
 var orbitRadius = 45;
-//t TEMPORARY 0 it was 0.0002
-var satelliteSpeed = 0;
+var satelliteSpeed = 0.0002;
 var satellitePosition = 0; // This will control the satellite's position independently
 
 // Navigation control variables
@@ -651,7 +673,7 @@ var then = 0;
 
 function drawScene(now) {
 	now *= 0.0002; // Convert timestamp for rotation
-	const deltaTime = now - then;
+
 	then = now;
 
 	// Clear the canvas and the depth buffer
@@ -696,44 +718,43 @@ function drawScene(now) {
 	var satelliteAngleToEarth = (2 * Math.PI - satelliteAngle) % (2 * Math.PI);
 	mat4.rotate(satelliteModelViewMatrix, satelliteModelViewMatrix, satelliteAngleToEarth, [0, 1, 0]);
 
-	// Draw the satellite main body (cube)
+	// SATELLITE - MAIN BODY
 	gl.uniform1i(gl.getUniformLocation(shaderProgram, 'uUseTexture'), false);
 	drawCube(gl, cubeVertexBuffer, cubeColorBuffer, cubeIndexBuffer, mainBody.indices.length, satelliteModelViewMatrix, projectionMatrix, shaderProgram);
 
-	// Set up and draw the rods
-	// Draw Rod 1
+	// SATELLITE - RODS SETUP
+	// ROD 1
 	var rod1ModelViewMatrix = mat4.create();
-	// Position and orient Rod 1
 	mat4.translate(rod1ModelViewMatrix, satelliteModelViewMatrix, [0, 0, 2]);
-	// Add any necessary rotations to rod1ModelViewMatrix
 	drawRod(gl, shaderProgram, rod1VertexBuffer, rod1ColorBuffer, rod1IndexBuffer, rod1.indices.length, rod1ModelViewMatrix, projectionMatrix);
 
-	// Position and draw Rod 2
+	// ROD 2
 	var rod2ModelViewMatrix = mat4.create();
 	mat4.translate(rod2ModelViewMatrix, satelliteModelViewMatrix, [0, 0, -2]);
-	// Additional transformations for rod2ModelViewMatrix if necessary
 	drawRod(gl, shaderProgram, rod1VertexBuffer, rod2ColorBuffer, rod2IndexBuffer, rod2.indices.length, rod2ModelViewMatrix, projectionMatrix);
 
-	// Position and draw Rod 3
+	// ROD 3
 	var rod3ModelViewMatrix = mat4.create();
 	mat4.translate(rod3ModelViewMatrix, satelliteModelViewMatrix, [-2, 0, 0]);
-	// Additional transformations for rod3ModelViewMatrix if necessary
 	mat4.rotateY(rod3ModelViewMatrix, rod3ModelViewMatrix, Math.PI / 2);
 	drawRod(gl, shaderProgram, rod1VertexBuffer, rod3ColorBuffer, rod3IndexBuffer, rod3.indices.length, rod3ModelViewMatrix, projectionMatrix);
 
-	// --SOLAR PANNELS
+	// SATELLITE - DISH
+	var antennaDishModelViewMatrix = mat4.create();
+	mat4.translate(antennaDishModelViewMatrix, rod3ModelViewMatrix, [0, 0, -0.75]);
+	drawAntennaDish(gl, shaderProgram, antennaDishVertexBuffer, antennaDishColorBuffer, antennaDishIndexBuffer, antennaDishData.indices.length, antennaDishModelViewMatrix, projectionMatrix);
 
-	// Position the solar panels at the end of the left rod, facing upwards
+	// SATELLITE - SOLAR PANNELS
+
+	// LEFT PANNEL
 	var leftSolarPanelMVMatrix = mat4.clone(satelliteModelViewMatrix);
-	// Adjust the positioning to place the panel at the end of the rod
 	mat4.translate(leftSolarPanelMVMatrix, leftSolarPanelMVMatrix, [-rodSize, 0, rodLength / 2 + 2.5]); // Added offset for the solar panel size
 	mat4.rotateX(leftSolarPanelMVMatrix, leftSolarPanelMVMatrix, Math.PI / 2); // Rotate to make it face upwards
 	drawSolarPanel(gl, shaderProgram, leftSolarPanelMVMatrix, projectionMatrix);
 
-	// Position the solar panels at the end of the right rod, facing upwards
+	// RIGHT PANNEL
 	var rightSolarPanelMVMatrix = mat4.clone(satelliteModelViewMatrix);
-	// Adjust the positioning to place the panel at the end of the rod
-	mat4.translate(rightSolarPanelMVMatrix, rightSolarPanelMVMatrix, [rodSize, 0, rodLength / 2 - 7.25]); // Added offset for the solar panel size
+	mat4.translate(rightSolarPanelMVMatrix, rightSolarPanelMVMatrix, [rodSize, 0, rodLength / 2 - 7.25]);
 	mat4.rotateX(rightSolarPanelMVMatrix, rightSolarPanelMVMatrix, Math.PI / 2); // Rotate to make it face upwards
 	drawSolarPanel(gl, shaderProgram, rightSolarPanelMVMatrix, projectionMatrix);
 
