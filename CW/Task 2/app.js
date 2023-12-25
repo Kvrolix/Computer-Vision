@@ -208,35 +208,35 @@ function drawEarth(gl, vertexBuffer, textureCoordBuffer, indexBuffer, indicesLen
 //Satellite
 //
 
-var goldenColor = [1.0, 0.843, 0.0, 1.0]; // Golden color
-var darkGreyColor = [0.2, 0.2, 0.2, 1.0]; // Dark grey color
-
 function createCube(size) {
 	var halfSize = size / 2;
 	var vertices = [];
 	var colors = [];
+
+	var goldenColor = [1.0, 0.843, 0.0, 1.0]; // Golden color
+	var greyColor = [0.2, 0.2, 0.2, 1.0]; // Dark grey color
 	// Define vertices for each face and assign colors
 	// Front face (golden)
 	vertices.push(...[-halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, halfSize, halfSize, halfSize, -halfSize, halfSize, halfSize]);
-	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
+	for (let i = 0; i < 4; i++) colors.push(...greyColor);
 
 	// Back face (golden)
 	vertices.push(...[-halfSize, -halfSize, -halfSize, -halfSize, halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, -halfSize, -halfSize]);
+	for (let i = 0; i < 4; i++) colors.push(...greyColor);
+
+	// Top face (golden)
+	vertices.push(...[-halfSize, halfSize, -halfSize, -halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, -halfSize]);
 	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
 
-	// Top face (dark grey)
-	vertices.push(...[-halfSize, halfSize, -halfSize, -halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, -halfSize]);
-	for (let i = 0; i < 4; i++) colors.push(...darkGreyColor);
-
-	// Bottom face (dark grey)
+	// Bottom face (golden)
 	vertices.push(...[-halfSize, -halfSize, -halfSize, halfSize, -halfSize, -halfSize, halfSize, -halfSize, halfSize, -halfSize, -halfSize, halfSize]);
-	for (let i = 0; i < 4; i++) colors.push(...darkGreyColor);
+	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
 
-	// Right face (golden)
+	// Right face (grey)
 	vertices.push(...[halfSize, -halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, halfSize, halfSize, halfSize, -halfSize, halfSize]);
 	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
 
-	// Left face (golden)
+	// Left face (grey)
 	vertices.push(...[-halfSize, -halfSize, -halfSize, -halfSize, -halfSize, halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, -halfSize]);
 	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
 
@@ -366,13 +366,12 @@ function createRodIndices() {
 }
 
 var rodSize = 0.2; // The width and height of the rod
-var rodLength = 2.0; // The length of the rod
+var rodLength = 4.6; // The length of the rod // 0.8 on each side + 3 of the cube
 var rodVertices = createRodVertices(rodSize, rodLength);
 var rodIndices = createRodIndices();
 
-////////////////////////////////////////////////
-
-////////////////////////////////////////////////
+// Grey color for rods
+var greyColor = [0.5, 0.5, 0.5, 1.0]; // RGBA for grey
 
 // Create a buffer for the rod's vertices
 var rodVertexBuffer = gl.createBuffer();
@@ -384,6 +383,15 @@ var rodIndexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rodIndexBuffer);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(rodIndices), gl.STATIC_DRAW);
 
+// Create an array for rod colors (assuming each rod vertex requires a color entry)
+var rodColors = new Array((rodVertices.length / 3) * 4).fill(greyColor).flat();
+
+// Create and bind the color buffer for rods
+var rodColorBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, rodColorBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(rodColors), gl.STATIC_DRAW);
+
+//
 //Create a function that has all the necessary functions to create the entire satellite
 
 ///TODO PACK IT INTO A FUNCTION
@@ -443,35 +451,62 @@ function drawScene(now) {
 	gl.uniform1i(gl.getUniformLocation(shaderProgram, 'uUseTexture'), true);
 	drawEarth(gl, vertexBuffer, textureCoordBuffer, indexBuffer, sphereData.indices.length, earthTexture, earthModelViewMatrix, projectionMatrix, shaderProgram);
 
-	// Satellite Model-View Matrix
-	var satelliteModelViewMatrix = mat4.create();
+	// Satellite calculations Which will alawys face the earth // added
 	satellitePosition += satelliteSpeed;
 	satelliteAngle = satellitePosition;
-	mat4.translate(satelliteModelViewMatrix, modelViewMatrix, [orbitRadius * Math.cos(satelliteAngle), 0, orbitRadius * Math.sin(satelliteAngle)]);
-
+	var satelliteX = orbitRadius * Math.cos(satelliteAngle);
+	var satelliteZ = orbitRadius * Math.sin(satelliteAngle);
+	var satelliteModelViewMatrix = mat4.create();
+	mat4.translate(satelliteModelViewMatrix, modelViewMatrix, [satelliteX, 0, satelliteZ]);
+	var satelliteAngleToEarth = (2 * Math.PI - satelliteAngle) % (2 * Math.PI);
+	mat4.rotate(satelliteModelViewMatrix, satelliteModelViewMatrix, satelliteAngleToEarth, [0, 1, 0]);
 	// Draw the satellite main body (cube)
 	gl.uniform1i(gl.getUniformLocation(shaderProgram, 'uUseTexture'), false);
 	drawCube(gl, cubeVertexBuffer, cubeColorBuffer, cubeIndexBuffer, mainBody.indices.length, satelliteModelViewMatrix, projectionMatrix, shaderProgram);
 
-	// Bind buffers for the rods
-	gl.bindBuffer(gl.ARRAY_BUFFER, rodVertexBuffer);
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rodIndexBuffer);
+	// Set up and draw the rod
 
-	// Set the positions for the rod vertices
+	var rodModelViewMatrix = mat4.create();
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, rodVertexBuffer);
 	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+	// Bind and set rod color buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, rodColorBuffer);
+	var vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor');
+	gl.vertexAttribPointer(vertexColor, 4, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vertexColor);
 
-	// Calculate the transformation for the first rod
-	var rodModelViewMatrix = mat4.create();
-	mat4.translate(rodModelViewMatrix, satelliteModelViewMatrix, [0, 0, -15.5]); // Adjust this translation
-	mat4.rotate(rodModelViewMatrix, rodModelViewMatrix, Math.PI / 2, [0, 3, 1]); // Rotate the rod if needed
-
-	// Set the matrix uniforms
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rodIndexBuffer);
 	gl.uniformMatrix4fv(shaderProgram.uModelViewMatrix, false, rodModelViewMatrix);
 	gl.uniformMatrix4fv(shaderProgram.uProjectionMatrix, false, projectionMatrix);
-
-	// Draw the rod
 	gl.drawElements(gl.TRIANGLES, rodIndices.length, gl.UNSIGNED_SHORT, 0);
+
+	// // New rod setup
+	// var rodModelViewMatrixFront = mat4.create();
+	// mat4.translate(rodModelViewMatrixFront, satelliteModelViewMatrix, [0, 0, 1.5 + rodLength / 2]); // Position the rod on the front face
+	// mat4.rotate(rodModelViewMatrixFront, rodModelViewMatrixFront, Math.PI / 2, [1, 0, 0]); // Rotate if necessary
+
+	// gl.bindBuffer(gl.ARRAY_BUFFER, rodVertexBuffer);
+	// gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+	// gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+	// gl.bindBuffer(gl.ARRAY_BUFFER, rodColorBuffer);
+	// gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+	// gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+
+	// gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rodIndexBuffer);
+
+	// gl.uniformMatrix4fv(shaderProgram.uModelViewMatrix, false, rodModelViewMatrixFront);
+	// gl.uniformMatrix4fv(shaderProgram.uProjectionMatrix, false, projectionMatrix);
+	// gl.drawElements(gl.TRIANGLES, rodIndices.length, gl.UNSIGNED_SHORT, 0);
+
+	//ERROR
+	// mat4.translate(rodModelViewMatrix, satelliteModelViewMatrix, [-1000, 0, 0]); // Move the rod to the right of the cube
+	// mat4.rotate(rodModelViewMatrix, rodModelViewMatrix, Math.PI / 2, [0, 0, 1]); // Rotate to align with the Y-axis
+	//
+	//It seems like it is a treated like a box as it took its colours
+	// and i think it is scaled so there are 2 boxes perfectly shaped like the main cube
 
 	// Request the next frame
 	requestAnimationFrame(drawScene);
