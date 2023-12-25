@@ -4,6 +4,7 @@
 		<title>A Simple WebGL Application</title>
 		<meta charset="utf-8" />
 
+		<script src="glMatrix.js"></script>
 		<!External JavaScript file>
 		<script src="webgl-debug.js"></script>
 
@@ -12,8 +13,12 @@
 			id="shader-vs"
 			type="x-shader/x-vertex">
 			attribute vec3 aVertexPosition;
+			attribute vec4 aVertexColor;
+			varying vec4 vColor;
+
 			void main() {
-			gl_Position = vec4(aVertexPosition, 1.0);
+			  vColor = aVertexColor;
+			  gl_Position = vec4(aVertexPosition, 1.0);
 			}
 		</script>
 
@@ -23,15 +28,14 @@
 			type="x-shader/x-fragment">
 
 			precision mediump float;
+			         varying vec4 vColor;
 			void main() {
-			gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+			gl_FragColor = vColor;
 			}
 		</script>
 
 		<!Script for WebGL program >
-		<script type="text/javascript" src="script.js">
-			
-		</script>
+		<script src="script2.js"></script>
 	</head>
 	<body onload="startup();">
 		<canvas
