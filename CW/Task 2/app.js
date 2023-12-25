@@ -33,21 +33,29 @@ var fsSource = `
 			         varying highp vec2 vTextureCoord;
                      varying lowp vec4 vColor;
 			         uniform sampler2D uSampler;
+                     uniform bool uUseTexture;
 			         void main(void) {
-			             gl_FragColor = texture2D(uSampler, vTextureCoord);
-                         
-			         }
+                        if (uUseTexture) {
+                            gl_FragColor = texture2D(uSampler, vTextureCoord);
+                        } else {
+                            gl_FragColor = vColor;
+                        }
+                    }
 			     `;
+
+// gl_FragColor = vColor; >
 
 function initShaderProgram(gl, vsSource, fsSource) {
 	var vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
 	var fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
 	var shaderProgram = gl.createProgram();
 	gl.attachShader(shaderProgram, vertexShader);
 	gl.attachShader(shaderProgram, fragmentShader);
 	gl.linkProgram(shaderProgram);
+
 	if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-		alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+		console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
 		return null;
 	}
 	return shaderProgram;
@@ -58,7 +66,7 @@ function loadShader(gl, type, source) {
 	gl.shaderSource(shader, source);
 	gl.compileShader(shader);
 	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-		alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+		console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
 		gl.deleteShader(shader);
 		return null;
 	}
@@ -165,48 +173,73 @@ function isPowerOf2(value) {
 }
 var earthTexture = loadTexture(gl, 'earth.jpg');
 
+function drawEarth(gl, vertexBuffer, textureCoordBuffer, indexBuffer, indicesLength, texture, modelViewMatrix, projectionMatrix, shaderProgram) {
+	// Bind the vertex buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+	var vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+	gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vertexPosition);
+
+	// Bind the texture coordinate buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+	var textureCoord = gl.getAttribLocation(shaderProgram, 'aTextureCoord');
+	gl.vertexAttribPointer(textureCoord, 2, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(textureCoord);
+
+	// Bind the index buffer
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+	// Activate and bind the texture
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.uniform1i(gl.getUniformLocation(shaderProgram, 'uSampler'), 0);
+
+	// Set the shader uniforms
+	var uModelViewMatrix = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
+	var uProjectionMatrix = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
+	gl.uniformMatrix4fv(uModelViewMatrix, false, modelViewMatrix);
+	gl.uniformMatrix4fv(uProjectionMatrix, false, projectionMatrix);
+
+	// Draw the Earth
+	gl.drawElements(gl.TRIANGLES, indicesLength, gl.UNSIGNED_SHORT, 0);
+}
+
+//
 //Satellite
+//
+
+var goldenColor = [1.0, 0.843, 0.0, 1.0]; // Golden color
+var darkGreyColor = [0.2, 0.2, 0.2, 1.0]; // Dark grey color
 
 function createCube(size) {
 	var halfSize = size / 2;
-	// prettier-ignore
-	var vertices = [
-		// Front face
-		-halfSize,-halfSize,halfSize,
-		halfSize,-halfSize,halfSize,
-		halfSize,halfSize,halfSize,
-		-halfSize,halfSize,halfSize,
+	var vertices = [];
+	var colors = [];
+	// Define vertices for each face and assign colors
+	// Front face (golden)
+	vertices.push(...[-halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, halfSize, halfSize, halfSize, -halfSize, halfSize, halfSize]);
+	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
 
-		// Back face
-		-halfSize,-halfSize,-halfSize,
-		-halfSize,halfSize,-halfSize,
-		halfSize,halfSize,-halfSize,
-		halfSize,-halfSize,-halfSize,
+	// Back face (golden)
+	vertices.push(...[-halfSize, -halfSize, -halfSize, -halfSize, halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, -halfSize, -halfSize]);
+	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
 
-		// Top face
-		-halfSize,halfSize,-halfSize,
-		-halfSize,halfSize,halfSize,
-		halfSize,halfSize,halfSize,
-		halfSize,halfSize,-halfSize,
-		
-        // Bottom face
-		-halfSize,-halfSize,-halfSize,
-		halfSize,-halfSize,-halfSize,
-		halfSize,-halfSize,halfSize,
-		-halfSize,-halfSize,halfSize,
+	// Top face (dark grey)
+	vertices.push(...[-halfSize, halfSize, -halfSize, -halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, -halfSize]);
+	for (let i = 0; i < 4; i++) colors.push(...darkGreyColor);
 
-		// Right face
-		halfSize,-halfSize,-halfSize,
-		halfSize,halfSize,-halfSize,
-		halfSize,halfSize,halfSize,
-		halfSize,-halfSize,halfSize,
+	// Bottom face (dark grey)
+	vertices.push(...[-halfSize, -halfSize, -halfSize, halfSize, -halfSize, -halfSize, halfSize, -halfSize, halfSize, -halfSize, -halfSize, halfSize]);
+	for (let i = 0; i < 4; i++) colors.push(...darkGreyColor);
 
-		// Left face
-		-halfSize,-halfSize,-halfSize,
-		-halfSize,-halfSize,halfSize,
-		-halfSize,halfSize,halfSize,
-		-halfSize,halfSize,-halfSize
-	];
+	// Right face (golden)
+	vertices.push(...[halfSize, -halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, halfSize, halfSize, halfSize, -halfSize, halfSize]);
+	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
+
+	// Left face (golden)
+	vertices.push(...[-halfSize, -halfSize, -halfSize, -halfSize, -halfSize, halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, -halfSize]);
+	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
+
 	// prettier-ignore
 	var indices = [
 		0,1,2,
@@ -224,11 +257,42 @@ function createCube(size) {
 	];
 	return {
 		vertices: vertices,
+		colors: colors,
 		indices: indices
 	};
 }
 
 var mainBody = createCube(3); // The cube is 3x3x3
+
+var cubeColorBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, cubeColorBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mainBody.colors), gl.STATIC_DRAW);
+
+function drawCube(gl, vertexBuffer, colorBuffer, indexBuffer, indicesLength, modelViewMatrix, projectionMatrix, shaderProgram) {
+	// Bind the vertex buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+	var vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+	gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vertexPosition);
+
+	// Bind the color buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	var vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor');
+	gl.vertexAttribPointer(vertexColor, 4, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vertexColor);
+
+	// Bind the index buffer
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+	// Set the shader uniforms
+	var uModelViewMatrix = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
+	var uProjectionMatrix = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
+	gl.uniformMatrix4fv(uModelViewMatrix, false, modelViewMatrix);
+	gl.uniformMatrix4fv(uProjectionMatrix, false, projectionMatrix);
+
+	// Draw the cube
+	gl.drawElements(gl.TRIANGLES, indicesLength, gl.UNSIGNED_SHORT, 0);
+}
 
 // var solarPanel1 = createRectangularPlane(2.0, 5.0);
 // var solarPanel2 = createRectangularPlane(2.0, 5.0);
@@ -387,30 +451,8 @@ function drawScene(now) {
 	var earthModelViewMatrix = mat4.clone(modelViewMatrix);
 	mat4.rotate(earthModelViewMatrix, earthModelViewMatrix, now, [0, 1, 0]); // Rotate the Earth over time
 
-	// Set the shader attributes and uniforms for the Earth
-	var vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
-	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-	gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(vertexPosition);
-
-	var textureCoord = gl.getAttribLocation(shaderProgram, 'aTextureCoord');
-	gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-	gl.vertexAttribPointer(textureCoord, 2, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(textureCoord);
-
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, earthTexture);
-	gl.uniform1i(gl.getUniformLocation(shaderProgram, 'uSampler'), 0);
-
-	var uModelViewMatrix = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
-	var uProjectionMatrix = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
-
-	gl.uniformMatrix4fv(uModelViewMatrix, false, earthModelViewMatrix);
-	gl.uniformMatrix4fv(uProjectionMatrix, false, projectionMatrix);
-
-	// Draw the Earth
-	gl.drawElements(gl.TRIANGLES, sphereData.indices.length, gl.UNSIGNED_SHORT, 0);
+	gl.uniform1i(gl.getUniformLocation(shaderProgram, 'uUseTexture'), true);
+	drawEarth(gl, vertexBuffer, textureCoordBuffer, indexBuffer, sphereData.indices.length, earthTexture, earthModelViewMatrix, projectionMatrix, shaderProgram);
 
 	// Satellite Model-View Matrix
 	var satelliteModelViewMatrix = mat4.create();
@@ -418,18 +460,9 @@ function drawScene(now) {
 	satelliteAngle = satellitePosition;
 	mat4.translate(satelliteModelViewMatrix, modelViewMatrix, [orbitRadius * Math.cos(satelliteAngle), 0, orbitRadius * Math.sin(satelliteAngle)]);
 
-	// Bind buffers for the satellite
-	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexBuffer);
-	gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(vertexPosition);
-
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeIndexBuffer);
-
-	// Set the shader uniforms for the satellite
-	gl.uniformMatrix4fv(uModelViewMatrix, false, satelliteModelViewMatrix);
-
-	// Draw the satellite
-	gl.drawElements(gl.TRIANGLES, mainBody.indices.length, gl.UNSIGNED_SHORT, 0);
+	// Draw the satellite main body (cube)
+	gl.uniform1i(gl.getUniformLocation(shaderProgram, 'uUseTexture'), false);
+	drawCube(gl, cubeVertexBuffer, cubeColorBuffer, cubeIndexBuffer, mainBody.indices.length, satelliteModelViewMatrix, projectionMatrix, shaderProgram);
 
 	// Bind buffers for the rods
 	gl.bindBuffer(gl.ARRAY_BUFFER, rodVertexBuffer);
@@ -442,7 +475,7 @@ function drawScene(now) {
 	// Calculate the transformation for the first rod
 	var rodModelViewMatrix = mat4.create();
 	mat4.translate(rodModelViewMatrix, satelliteModelViewMatrix, [0, 0, -15.5]); // Adjust this translation
-	mat4.rotate(rodModelViewMatrix, rodModelViewMatrix, Math.PI / 2, [0, 1, 0]); // Rotate the rod if needed
+	mat4.rotate(rodModelViewMatrix, rodModelViewMatrix, Math.PI / 2, [0, 3, 1]); // Rotate the rod if needed
 
 	// Set the matrix uniforms
 	gl.uniformMatrix4fv(shaderProgram.uModelViewMatrix, false, rodModelViewMatrix);
