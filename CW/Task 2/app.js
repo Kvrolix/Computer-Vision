@@ -218,33 +218,40 @@ function createCube(size) {
 	var halfSize = size / 2;
 	var vertices = [];
 	var colors = [];
+	var normals = [];
 
 	var goldenColor = [1.0, 0.843, 0.0, 1.0]; // Golden color
 	var greyColor = [0.2, 0.2, 0.2, 1.0]; // Dark grey color
-	// Define vertices for each face and assign colors
+
 	// Front face (golden)
 	vertices.push(...[-halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, halfSize, halfSize, halfSize, -halfSize, halfSize, halfSize]);
 	for (let i = 0; i < 4; i++) colors.push(...greyColor);
+	for (let i = 0; i < 4; i++) normals.push(...[0, 0, 1]); // Normal pointing outwards
 
 	// Back face (golden)
 	vertices.push(...[-halfSize, -halfSize, -halfSize, -halfSize, halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, -halfSize, -halfSize]);
 	for (let i = 0; i < 4; i++) colors.push(...greyColor);
+	for (let i = 0; i < 4; i++) normals.push(...[0, 0, -1]); // Normal pointing inwards
 
 	// Top face (golden)
 	vertices.push(...[-halfSize, halfSize, -halfSize, -halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, halfSize, -halfSize]);
 	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
+	for (let i = 0; i < 4; i++) normals.push(...[0, 1, 0]); // Normal pointing upwards
 
 	// Bottom face (golden)
 	vertices.push(...[-halfSize, -halfSize, -halfSize, halfSize, -halfSize, -halfSize, halfSize, -halfSize, halfSize, -halfSize, -halfSize, halfSize]);
 	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
+	for (let i = 0; i < 4; i++) normals.push(...[0, -1, 0]); // Normal pointing downwards
 
 	// Right face (grey)
 	vertices.push(...[halfSize, -halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, halfSize, halfSize, halfSize, -halfSize, halfSize]);
 	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
+	for (let i = 0; i < 4; i++) normals.push(...[1, 0, 0]); // Normal pointing to the right
 
 	// Left face (grey)
 	vertices.push(...[-halfSize, -halfSize, -halfSize, -halfSize, -halfSize, halfSize, -halfSize, halfSize, halfSize, -halfSize, halfSize, -halfSize]);
 	for (let i = 0; i < 4; i++) colors.push(...goldenColor);
+	for (let i = 0; i < 4; i++) normals.push(...[-1, 0, 0]); // Normal pointing to the left
 
 	// prettier-ignore
 	var indices = [
@@ -264,17 +271,30 @@ function createCube(size) {
 	return {
 		vertices: vertices,
 		colors: colors,
-		indices: indices
+		indices: indices,
+		normals: normals
 	};
 }
 
 var mainBody = createCube(3); // The cube is 3x3x3
 
+var cubeVertexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mainBody.vertices), gl.STATIC_DRAW);
+
 var cubeColorBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, cubeColorBuffer);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mainBody.colors), gl.STATIC_DRAW);
 
-function drawCube(gl, vertexBuffer, colorBuffer, indexBuffer, indicesLength, modelViewMatrix, projectionMatrix, shaderProgram) {
+var cubeNormalBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, cubeNormalBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mainBody.normals), gl.STATIC_DRAW);
+
+var cubeIndexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeIndexBuffer);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mainBody.indices), gl.STATIC_DRAW);
+
+function drawCube(gl, vertexBuffer, colorBuffer, indexBuffer, normalBuffer, indicesLength, modelViewMatrix, projectionMatrix, shaderProgram) {
 	// Bind the vertex buffer
 	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 	var vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
@@ -286,6 +306,12 @@ function drawCube(gl, vertexBuffer, colorBuffer, indexBuffer, indicesLength, mod
 	var vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor');
 	gl.vertexAttribPointer(vertexColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vertexColor);
+
+	// Bind the normal buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+	var vertexNormal = gl.getAttribLocation(shaderProgram, 'aVertexNormal');
+	gl.vertexAttribPointer(vertexNormal, 3, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vertexNormal);
 
 	// Bind the index buffer
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);

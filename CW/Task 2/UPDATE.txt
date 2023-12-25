@@ -1,0 +1,10 @@
+What do i want to do?
+Set the rods in the right location
+Clean up code
+Ste Up the functions for drawing
+
+
+Create a function for binding buffers and binding them as it takes too much space 
+
+
+STOPPED ON UPDATING THE DRAW CUBE FUNCTION
