@@ -289,7 +289,6 @@ function drawCube(gl, vertexBuffer, colorBuffer, indexBuffer, indicesLength, mod
 	var uProjectionMatrix = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
 	gl.uniformMatrix4fv(uModelViewMatrix, false, modelViewMatrix);
 	gl.uniformMatrix4fv(uProjectionMatrix, false, projectionMatrix);
-
 	// Draw the cube
 	gl.drawElements(gl.TRIANGLES, indicesLength, gl.UNSIGNED_SHORT, 0);
 }
@@ -371,6 +370,10 @@ var rodLength = 2.0; // The length of the rod
 var rodVertices = createRodVertices(rodSize, rodLength);
 var rodIndices = createRodIndices();
 
+////////////////////////////////////////////////
+
+////////////////////////////////////////////////
+
 // Create a buffer for the rod's vertices
 var rodVertexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, rodVertexBuffer);
@@ -383,6 +386,7 @@ gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(rodIndices), gl.STATIC_DR
 
 //Create a function that has all the necessary functions to create the entire satellite
 
+///TODO PACK IT INTO A FUNCTION
 var cubeVertexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexBuffer);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mainBody.vertices), gl.STATIC_DRAW);
@@ -391,22 +395,7 @@ var cubeIndexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeIndexBuffer);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mainBody.indices), gl.STATIC_DRAW);
 
-////////////////////////////////////////////////
 //Define the Vertices for the Solar Panel
-
-// set up the buffer to pass the vertices to the GPU.
-
-var vertexBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphereData.vertices), gl.STATIC_DRAW);
-
-var textureCoordBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphereData.textureCoords), gl.STATIC_DRAW);
-
-var indexBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(sphereData.indices), gl.STATIC_DRAW);
 
 // Satellite Buffers
 
