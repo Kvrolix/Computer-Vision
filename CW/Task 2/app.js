@@ -498,6 +498,138 @@ function drawSolarPanel(gl, shaderProgram, modelViewMatrix, projectionMatrix) {
 
 // 	gl.drawElements(gl.TRIANGLES, indicesLength, gl.UNSIGNED_SHORT, 0);
 // }
+/////////////////////////////////////// DRAWING THE RODS
+
+function createOctagonalPrism(diameter, length, color) {
+	const angle = (2 * Math.PI) / 8; // octagon has 8 sides
+	const radius = diameter / 2;
+	let vertices = [];
+	let colors = [];
+	let indices = [];
+
+	// Generate the vertices for the top and bottom faces
+	for (let i = 0; i < 8; i++) {
+		// Top vertices
+		vertices.push(radius * Math.cos(i * angle), radius * Math.sin(i * angle), length / 2);
+		// Bottom vertices
+		vertices.push(radius * Math.cos(i * angle), radius * Math.sin(i * angle), -length / 2);
+
+		// Same color for each vertex
+		colors.push(...color); // top vertex color
+		colors.push(...color); // bottom vertex color
+	}
+
+	// Generate the indices for the top and bottom faces
+	for (let i = 0; i < 8; i++) {
+		// Top face indices
+		indices.push(i * 2, (i * 2 + 2) % 16, (i * 2 + 4) % 16);
+		// Bottom face indices
+		indices.push(i * 2 + 1, (i * 2 + 3) % 16, (i * 2 + 5) % 16);
+	}
+
+	// Generate the indices for the side faces
+	for (let i = 0; i < 8; i++) {
+		let next = (i + 1) % 8;
+		indices.push(i * 2, next * 2, next * 2 + 1);
+		indices.push(i * 2, next * 2 + 1, i * 2 + 1);
+	}
+
+	return {
+		vertices: new Float32Array(vertices),
+		colors: new Float32Array(colors),
+		indices: new Uint16Array(indices)
+	};
+}
+
+// Define colors
+const grey = [0.5, 0.5, 0.5, 1.0];
+
+// ---First rod
+const rod1 = createOctagonalPrism(0.2, 0.8, grey);
+const rod1VertexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, rod1VertexBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, rod1.vertices, gl.STATIC_DRAW);
+
+const rod1ColorBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, rod1ColorBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, rod1.colors, gl.STATIC_DRAW);
+
+const rod1IndexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod1IndexBuffer);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, rod1.indices, gl.STATIC_DRAW);
+
+// ---Second rod
+const rod2 = createOctagonalPrism(0.2, 0.8, grey);
+const rod2ColorBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, rod2ColorBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, rod2.colors, gl.STATIC_DRAW);
+
+const rod2IndexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod2IndexBuffer);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, rod2.indices, gl.STATIC_DRAW);
+
+// ---Third rod
+const rod3 = createOctagonalPrism(0.2, 0.8, grey);
+
+const rod3ColorBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, rod3ColorBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, rod3.colors, gl.STATIC_DRAW);
+
+const rod3IndexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod3IndexBuffer);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, rod3.indices, gl.STATIC_DRAW);
+
+// // ---Second rod
+// const rod2 = createOctagonalPrism(0.2, 0.8, grey);
+// const rod2VertexBuffer = gl.createBuffer();
+// gl.bindBuffer(gl.ARRAY_BUFFER, rod2VertexBuffer);
+// gl.bufferData(gl.ARRAY_BUFFER, rod2.vertices, gl.STATIC_DRAW);
+
+// const rod2ColorBuffer = gl.createBuffer();
+// gl.bindBuffer(gl.ARRAY_BUFFER, rod1ColorBuffer);
+// gl.bufferData(gl.ARRAY_BUFFER, rod2.colors, gl.STATIC_DRAW);
+
+// const rod2IndexBuffer = gl.createBuffer();
+// gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod1IndexBuffer);
+// gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, rod2.indices, gl.STATIC_DRAW);
+
+// // ---Third rod
+// const rod3 = createOctagonalPrism(0.3, 1.0, grey);
+// const rod3VertexBuffer = gl.createBuffer();
+// gl.bindBuffer(gl.ARRAY_BUFFER, rod2VertexBuffer);
+// gl.bufferData(gl.ARRAY_BUFFER, rod3.vertices, gl.STATIC_DRAW);
+
+// const rod3ColorBuffer = gl.createBuffer();
+// gl.bindBuffer(gl.ARRAY_BUFFER, rod1ColorBuffer);
+// gl.bufferData(gl.ARRAY_BUFFER, rod3.colors, gl.STATIC_DRAW);
+
+// const rod3IndexBuffer = gl.createBuffer();
+// gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod1IndexBuffer);
+// gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, rod3.indices, gl.STATIC_DRAW);
+
+function drawRod(gl, shaderProgram, vertexBuffer, colorBuffer, indexBuffer, indicesLength, modelViewMatrix, projectionMatrix) {
+	// Bind the vertex buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+	var vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+	gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vertexPosition);
+
+	// Bind the color buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	var vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor');
+	gl.vertexAttribPointer(vertexColor, 4, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vertexColor);
+
+	// Bind the index buffer
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+	// Set the shader uniforms
+	gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'), false, modelViewMatrix);
+	gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'), false, projectionMatrix);
+
+	// Draw the rod
+	gl.drawElements(gl.TRIANGLES, indicesLength, gl.UNSIGNED_SHORT, 0);
+}
 
 ////////////////////////////////
 
@@ -508,7 +640,8 @@ var projectionMatrix = mat4.create();
 
 var satelliteAngle = 0;
 var orbitRadius = 45;
-var satelliteSpeed = 0.0002;
+//t TEMPORARY 0 it was 0.0002
+var satelliteSpeed = 0;
 var satellitePosition = 0; // This will control the satellite's position independently
 
 // Navigation control variables
@@ -568,6 +701,27 @@ function drawScene(now) {
 	drawCube(gl, cubeVertexBuffer, cubeColorBuffer, cubeIndexBuffer, mainBody.indices.length, satelliteModelViewMatrix, projectionMatrix, shaderProgram);
 
 	// Set up and draw the rods
+	// Draw Rod 1
+	var rod1ModelViewMatrix = mat4.create();
+	// Position and orient Rod 1
+	mat4.translate(rod1ModelViewMatrix, satelliteModelViewMatrix, [0, 0, 2]);
+	// Add any necessary rotations to rod1ModelViewMatrix
+	drawRod(gl, shaderProgram, rod1VertexBuffer, rod1ColorBuffer, rod1IndexBuffer, rod1.indices.length, rod1ModelViewMatrix, projectionMatrix);
+
+	// Position and draw Rod 2
+	var rod2ModelViewMatrix = mat4.create();
+	mat4.translate(rod2ModelViewMatrix, satelliteModelViewMatrix, [0, 0, -2]);
+	// Additional transformations for rod2ModelViewMatrix if necessary
+	drawRod(gl, shaderProgram, rod1VertexBuffer, rod2ColorBuffer, rod2IndexBuffer, rod2.indices.length, rod2ModelViewMatrix, projectionMatrix);
+
+	// Position and draw Rod 3
+	var rod3ModelViewMatrix = mat4.create();
+	mat4.translate(rod3ModelViewMatrix, satelliteModelViewMatrix, [-2, 0, 0]);
+	// Additional transformations for rod3ModelViewMatrix if necessary
+	mat4.rotateY(rod3ModelViewMatrix, rod3ModelViewMatrix, Math.PI / 2);
+	drawRod(gl, shaderProgram, rod1VertexBuffer, rod3ColorBuffer, rod3IndexBuffer, rod3.indices.length, rod3ModelViewMatrix, projectionMatrix);
+
+	// --SOLAR PANNELS
 
 	// Position the solar panels at the end of the left rod, facing upwards
 	var leftSolarPanelMVMatrix = mat4.clone(satelliteModelViewMatrix);
@@ -591,101 +745,6 @@ function drawScene(now) {
 	requestAnimationFrame(drawScene);
 }
 
-// var rodModelViewMatrix = mat4.create();
-// 	gl.bindBuffer(gl.ARRAY_BUFFER, rodVertexBuffer);
-// 	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-// 	gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-// 	// Bind and set rod color buffer
-// 	gl.bindBuffer(gl.ARRAY_BUFFER, rodColorBuffer);
-// 	var vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor');
-// 	gl.vertexAttribPointer(vertexColor, 4, gl.FLOAT, false, 0, 0);
-// 	gl.enableVertexAttribArray(vertexColor);
-
-// 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rodIndexBuffer);
-// 	gl.uniformMatrix4fv(shaderProgram.uModelViewMatrix, false, rodModelViewMatrix);
-// 	gl.uniformMatrix4fv(shaderProgram.uProjectionMatrix, false, projectionMatrix);
-// 	gl.drawElements(gl.TRIANGLES, rodIndices.length, gl.UNSIGNED_SHORT, 0);
-
-/*
-function drawScene(now) {
-	now *= 0.0002; // Convert timestamp for rotation
-	const deltaTime = now - then;
-	then = now;
-
-	// Clear the canvas and the depth buffer
-	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-	gl.clearDepth(1.0);
-	gl.enable(gl.DEPTH_TEST);
-	gl.depthFunc(gl.LEQUAL);
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-	// Set up the perspective matrix
-	mat4.perspective(projectionMatrix, (60 * Math.PI) / 180, gl.canvas.clientWidth / gl.canvas.clientHeight, 0.1, 1000.0);
-
-	// Base model-view matrix for navigation controls
-	mat4.identity(modelViewMatrix);
-	mat4.translate(modelViewMatrix, modelViewMatrix, translation);
-	mat4.rotate(modelViewMatrix, modelViewMatrix, rotation[0], [1, 0, 0]);
-	mat4.rotate(modelViewMatrix, modelViewMatrix, rotation[1], [0, 1, 0]);
-
-	// Use the shader program
-	gl.useProgram(shaderProgram);
-
-	// Earth Model-View Matrix
-	var earthModelViewMatrix = mat4.clone(modelViewMatrix);
-	mat4.rotate(earthModelViewMatrix, earthModelViewMatrix, now, [0, 1, 0]); // Rotate the Earth over time
-
-	gl.uniform1i(gl.getUniformLocation(shaderProgram, 'uUseTexture'), true);
-	drawEarth(gl, vertexBuffer, textureCoordBuffer, indexBuffer, sphereData.indices.length, earthTexture, earthModelViewMatrix, projectionMatrix, shaderProgram);
-
-	// Satellite calculations Which will alawys face the earth // added
-	satellitePosition += satelliteSpeed;
-	satelliteAngle = satellitePosition;
-	var satelliteX = orbitRadius * Math.cos(satelliteAngle);
-	var satelliteZ = orbitRadius * Math.sin(satelliteAngle);
-	var satelliteModelViewMatrix = mat4.create();
-	mat4.translate(satelliteModelViewMatrix, modelViewMatrix, [satelliteX, 0, satelliteZ]);
-	var satelliteAngleToEarth = (2 * Math.PI - satelliteAngle) % (2 * Math.PI);
-	mat4.rotate(satelliteModelViewMatrix, satelliteModelViewMatrix, satelliteAngleToEarth, [0, 1, 0]);
-
-	// Draw the satellite main body (cube)
-	gl.uniform1i(gl.getUniformLocation(shaderProgram, 'uUseTexture'), false);
-	drawCube(gl, cubeVertexBuffer, cubeColorBuffer, cubeIndexBuffer, mainBody.indices.length, satelliteModelViewMatrix, projectionMatrix, shaderProgram);
-
-	// Set up and draw the rod
-
-	var rodModelViewMatrix = mat4.create();
-
-	gl.bindBuffer(gl.ARRAY_BUFFER, rodVertexBuffer);
-	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-	// Bind and set rod color buffer
-	gl.bindBuffer(gl.ARRAY_BUFFER, rodColorBuffer);
-	var vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor');
-	gl.vertexAttribPointer(vertexColor, 4, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(vertexColor);
-
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rodIndexBuffer);
-	gl.uniformMatrix4fv(shaderProgram.uModelViewMatrix, false, rodModelViewMatrix);
-	gl.uniformMatrix4fv(shaderProgram.uProjectionMatrix, false, projectionMatrix);
-	gl.drawElements(gl.TRIANGLES, rodIndices.length, gl.UNSIGNED_SHORT, 0);
-
-	// Position the solar panels at the end of the left rod, facing upwards
-	var leftSolarPanelMVMatrix = mat4.clone(satelliteModelViewMatrix);
-	mat4.translate(leftSolarPanelMVMatrix, leftSolarPanelMVMatrix, [-rodSize, 0, rodLength / 2]);
-	mat4.rotateX(leftSolarPanelMVMatrix, leftSolarPanelMVMatrix, Math.PI / 2);
-	drawSolarPanel(gl, shaderProgram, leftSolarPanelMVMatrix, projectionMatrix);
-
-	// Position the solar panels at the end of the right rod, facing upwards
-	var rightSolarPanelMVMatrix = mat4.clone(satelliteModelViewMatrix);
-	mat4.translate(rightSolarPanelMVMatrix, rightSolarPanelMVMatrix, [rodSize, 0, rodLength / 2]);
-	mat4.rotateX(rightSolarPanelMVMatrix, rightSolarPanelMVMatrix, Math.PI / 2);
-	drawSolarPanel(gl, shaderProgram, rightSolarPanelMVMatrix, projectionMatrix);
-
-	// Request the next frame
-	requestAnimationFrame(drawScene);
-}
-*/
 //
 // CONTROLS
 //
