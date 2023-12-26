@@ -38,7 +38,7 @@ varying highp vec2 vTextureCoord;
     uniform highp vec3 uLightDirection; 
 
     void main(void) {
-        highp vec3 ambientLight = vec3(0.1, 0.1, 0.1);
+        highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
         highp vec3 directionalLightColor = vec3(1, 1, 1);
         highp float directional = max(dot(vNormal, normalize(uLightDirection)), 0.0);
         highp vec3 vLighting = ambientLight + (directionalLightColor * directional);
@@ -138,7 +138,7 @@ function createSphereData(radius, latitudeBands, longitudeBands) {
 	};
 }
 
-var sphereData = createSphereData(30, 40, 40);
+var sphereData = createSphereData(30, 80, 80);
 
 var vertexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -353,35 +353,42 @@ function createRodData(diameter, length, color) {
 	let colors = [];
 	let indices = [];
 
-	// Generate the vertices for the top and bottom faces
+	// Generate vertices, normals, and indices
 	for (let i = 0; i < 8; i++) {
+		let nextI = (i + 1) % 8;
+		let angle1 = i * angle;
+		let angle2 = nextI * angle;
+
+		// Normal for the side faces
+		let normalX = Math.cos(angle1 + angle / 2);
+		let normalY = Math.sin(angle1 + angle / 2);
+
 		// Top vertices
-		vertices.push(radius * Math.cos(i * angle), radius * Math.sin(i * angle), length / 2);
+		vertices.push(radius * Math.cos(angle1), radius * Math.sin(angle1), length / 2);
+		normals.push(normalX, normalY, 0);
+		colors.push(...color);
+
+		vertices.push(radius * Math.cos(angle2), radius * Math.sin(angle2), length / 2);
+		normals.push(normalX, normalY, 0);
+		colors.push(...color);
+
 		// Bottom vertices
-		vertices.push(radius * Math.cos(i * angle), radius * Math.sin(i * angle), -length / 2);
+		vertices.push(radius * Math.cos(angle2), radius * Math.sin(angle2), -length / 2);
+		normals.push(normalX, normalY, 0);
+		colors.push(...color);
 
-		// Same color for each vertex
-		colors.push(...color); // top vertex color
-		colors.push(...color); // bottom vertex color
-	}
+		vertices.push(radius * Math.cos(angle1), radius * Math.sin(angle1), -length / 2);
+		normals.push(normalX, normalY, 0);
+		colors.push(...color);
 
-	// Generate the indices for the top and bottom faces
-	for (let i = 0; i < 8; i++) {
-		// Top face indices
-		indices.push(i * 2, (i * 2 + 2) % 16, (i * 2 + 4) % 16);
-		// Bottom face indices
-		indices.push(i * 2 + 1, (i * 2 + 3) % 16, (i * 2 + 5) % 16);
-	}
-
-	// Generate the indices for the side faces
-	for (let i = 0; i < 8; i++) {
-		let next = (i + 1) % 8;
-		indices.push(i * 2, next * 2, next * 2 + 1);
-		indices.push(i * 2, next * 2 + 1, i * 2 + 1);
+		// Indices
+		let base = i * 4;
+		indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
 	}
 
 	return {
 		vertices: new Float32Array(vertices),
+		normals: new Float32Array(normals),
 		colors: new Float32Array(colors),
 		indices: new Uint16Array(indices)
 	};
@@ -401,6 +408,11 @@ const rod1ColorBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, rod1ColorBuffer);
 gl.bufferData(gl.ARRAY_BUFFER, rod1.colors, gl.STATIC_DRAW);
 
+// NEW
+const rod1NormalBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, rod1NormalBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, rod1.normals, gl.STATIC_DRAW);
+
 const rod1IndexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod1IndexBuffer);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, rod1.indices, gl.STATIC_DRAW);
@@ -411,6 +423,10 @@ const rod2 = createRodData(0.2, 0.8, grey);
 const rod2ColorBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, rod2ColorBuffer);
 gl.bufferData(gl.ARRAY_BUFFER, rod2.colors, gl.STATIC_DRAW);
+
+const rod2NormalBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, rod2NormalBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, rod2.normals, gl.STATIC_DRAW);
 
 const rod2IndexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod2IndexBuffer);
@@ -423,11 +439,15 @@ const rod3ColorBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, rod3ColorBuffer);
 gl.bufferData(gl.ARRAY_BUFFER, rod3.colors, gl.STATIC_DRAW);
 
+const rod3NormalBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, rod3NormalBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, rod3.normals, gl.STATIC_DRAW);
+
 const rod3IndexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, rod3IndexBuffer);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, rod3.indices, gl.STATIC_DRAW);
 
-function drawRod(gl, shaderProgram, vertexBuffer, colorBuffer, indexBuffer, indicesLength, modelViewMatrix, projectionMatrix) {
+function drawRod(gl, shaderProgram, vertexBuffer, colorBuffer, normalBuffer, indexBuffer, indicesLength, modelViewMatrix, projectionMatrix) {
 	// Bind the vertex buffer
 	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 	var vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
@@ -440,6 +460,12 @@ function drawRod(gl, shaderProgram, vertexBuffer, colorBuffer, indexBuffer, indi
 	gl.vertexAttribPointer(vertexColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vertexColor);
 
+	// Bind the normal buffer
+	gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+	var vertexNormal = gl.getAttribLocation(shaderProgram, 'aVertexNormal');
+	gl.vertexAttribPointer(vertexNormal, 3, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vertexNormal);
+
 	// Bind the index buffer
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
@@ -449,6 +475,8 @@ function drawRod(gl, shaderProgram, vertexBuffer, colorBuffer, indexBuffer, indi
 
 	// Draw the rod
 	gl.drawElements(gl.TRIANGLES, indicesLength, gl.UNSIGNED_SHORT, 0);
+
+	gl.disableVertexAttribArray(vertexNormal);
 }
 
 // SATELLITE - SOLAR PANNEL
@@ -618,6 +646,11 @@ function drawAntennaDish(gl, shaderProgram, vertexBuffer, colorBuffer, normalBuf
 	gl.vertexAttribPointer(vertexNormal, 3, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(vertexNormal);
 
+	// Update normal matrix for the antenna dish
+	var dishNormalMatrix = mat3.create();
+	mat3.normalFromMat4(dishNormalMatrix, modelViewMatrix);
+	gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, 'uNormalMatrix'), false, dishNormalMatrix);
+
 	// Bind the index buffer
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
@@ -635,8 +668,8 @@ var projectionMatrix = mat4.create();
 // SATELLITE - SETTINGS
 var satelliteAngle = 0;
 var orbitRadius = 45;
-// var satelliteSpeed = 0.0002;
-var satelliteSpeed = 0;
+var satelliteSpeed = 0.0002;
+// var satelliteSpeed = 0;
 var satellitePosition = 0; // This will control the satellite's position independently
 
 // Navigation control variables
@@ -722,18 +755,18 @@ function drawScene(now) {
 	// ROD 1
 	var rod1ModelViewMatrix = mat4.create();
 	mat4.translate(rod1ModelViewMatrix, satelliteModelViewMatrix, [0, 0, 1.9]);
-	drawRod(gl, shaderProgram, rod1VertexBuffer, rod1ColorBuffer, rod1IndexBuffer, rod1.indices.length, rod1ModelViewMatrix, projectionMatrix);
+	drawRod(gl, shaderProgram, rod1VertexBuffer, rod1ColorBuffer, rod1NormalBuffer, rod1IndexBuffer, rod1.indices.length, rod1ModelViewMatrix, projectionMatrix);
 
 	// ROD 2
 	var rod2ModelViewMatrix = mat4.create();
 	mat4.translate(rod2ModelViewMatrix, satelliteModelViewMatrix, [0, 0, -1.9]);
-	drawRod(gl, shaderProgram, rod1VertexBuffer, rod2ColorBuffer, rod2IndexBuffer, rod2.indices.length, rod2ModelViewMatrix, projectionMatrix);
+	drawRod(gl, shaderProgram, rod1VertexBuffer, rod2ColorBuffer, rod2NormalBuffer, rod2IndexBuffer, rod2.indices.length, rod2ModelViewMatrix, projectionMatrix);
 
 	// ROD 3
 	var rod3ModelViewMatrix = mat4.create();
 	mat4.translate(rod3ModelViewMatrix, satelliteModelViewMatrix, [-1.9, 0, 0]);
 	mat4.rotateY(rod3ModelViewMatrix, rod3ModelViewMatrix, Math.PI / 2);
-	drawRod(gl, shaderProgram, rod1VertexBuffer, rod3ColorBuffer, rod3IndexBuffer, rod3.indices.length, rod3ModelViewMatrix, projectionMatrix);
+	drawRod(gl, shaderProgram, rod1VertexBuffer, rod3ColorBuffer, rod3NormalBuffer, rod3IndexBuffer, rod3.indices.length, rod3ModelViewMatrix, projectionMatrix);
 
 	// SATELLITE - DISH
 	var antennaDishModelViewMatrix = mat4.create();
