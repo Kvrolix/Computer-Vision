@@ -8,3 +8,9 @@ Create a function for binding buffers and binding them as it takes too much spac
 
 
 STOPPED ON UPDATING THE DRAW CUBE FUNCTION
+
+
+ADD NORMALS TO THE EARTH
+
+
+the satellite dish is changing colours after every 3 full spins 
