@@ -7,3 +7,5 @@ EARTH:
 
 
 ANIMATION
+
+The problem was with the coordinates system
