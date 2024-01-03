@@ -659,7 +659,7 @@ function drawScene(now) {
 	then = now;
 
 	// Clear the canvas and the depth buffer
-	gl.clearColor(...BLACK_COLOR); //Black
+	gl.clearColor(...BLACK_COLOR);
 	gl.clearDepth(1.0);
 	gl.enable(gl.DEPTH_TEST);
 	gl.depthFunc(gl.LEQUAL);

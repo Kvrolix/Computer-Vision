@@ -1,9 +1,16 @@
-%Function to check wether an image is a red image, returning the boolean
-%value if the percentage is greater than 10% meaning that the red object is
-%present, it return the percentage of the red colour. Taking the image as
-%an input
+% isRed determines if an image predominantly features the color red.
+% The function converts the image to the HSV color space and applies a threshold to 
+% isolate regions with red hues. It then calculates the percentage of red in the image
+% and returns a boolean value indicating if red is the predominant color.
+%
+% Inputs:
+%   image - RGB image to be analyzed
+%
+% Outputs:
+%   isCarRed - Boolean indicating if the image is predominantly red
+%   percentageRed - The percentage of the image that is red
 
-function [isCarRed,percentageRed] = isRed(image)
+function percentageRed = checkRedDominance(image)
     
     % HSV image
     hsvImage = rgb2hsv(image);
@@ -19,6 +26,6 @@ function [isCarRed,percentageRed] = isRed(image)
 
     % Check the red percentage on the picture
     percentageRed = sum(binaryImage(:)) / numel(binaryImage) * 100;
-    isCarRed = percentageRed > 1;  
+     
 end
 

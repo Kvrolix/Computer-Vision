@@ -4,7 +4,7 @@
 
 % image = imread('oversized.jpg');
 % image = imread('fire01.jpg');
-image= imread("006.jpg");
+image= imread("001.jpg");
 
 % image= imread("002.jpg")
 

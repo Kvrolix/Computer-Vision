@@ -17,16 +17,35 @@ This project is a WebGL-based 3D simulation of a satellite orbiting Earth. It fe
 
 To run this simulation, follow these steps:
 
+Method 1:
+
 1. Download the zip file containing the application. It should contain following files:
    - app.js
    - helper.js
    - index.html
    - earth.jpg
-   - README.md
-2. Open the file 'index.html' in your browser. Ensure you use a browser that supports WebGL e.g:
-   - Google Chrome
-   - Mozilla Firefox
-     You might encounter issues with the application if opened in different browser than those listed above.
+   - liveServer.png
+   - README.md (this file)
+2. Open the file 'index.html' in your browser. Ensure you use Mozilla Firefox
+   You might encounter issues with the application if opened in different browser.
+
+3. Start using the Application
+
+Method 2 (Using Visual Code Studio):
+
+1. Download the zip file containing the application. It should contain following files:
+
+   - app.js
+   - helper.js
+   - index.html
+   - earth.jpg
+   - liveServer.png
+   - README.md (this file)
+
+2. Press the 'index.html' with the RMB and select 'Open with live server'
+   ![Open live server](liveServer.png)
+
+3. Start using the Application
 
 ## Usage
 

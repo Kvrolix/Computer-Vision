@@ -30,7 +30,7 @@ function [centers, bottomLineCenters, topLineCenters] = normalCarMeasures(imageP
     stats = regionprops(labeledImage, 'BoundingBox', 'Area');
 
     % Filter regions based on area (you may adjust the threshold)
-    minAreaThreshold = 5;  % Adjust as needed
+    minAreaThreshold = 5;  
     selectedRegions = stats([stats.Area] > minAreaThreshold);
 
     % Initialize variables
