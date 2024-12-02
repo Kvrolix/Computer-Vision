@@ -8,6 +8,8 @@ This repository contains two projects developed as part of Computer Vision and G
 2. **Satellite Simulation Project**  
    A WebGL-based 3D simulation that visualizes a satellite orbiting Earth with realistic lighting, textures, and motion.
 
+![satelliteGif](SatelliteGif.gif)
+
 Each project has its own README file with detailed instructions and information.
 
 ---
